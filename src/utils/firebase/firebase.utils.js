@@ -66,9 +66,8 @@ export const createUserDocumentFromAuth = async (userAuth, aditionalInfo = {}) =
         } catch (err) {
             console.log('error creating the user', err);
         }
-        return userDocRef;
     };
-
+    return userSnapshot;
     //if user data does/doesn't exists
 
     //create/set the doc with the data from userAuth in my collection
@@ -80,11 +79,7 @@ export const getCategoriesAndDocuments = async () => {
     const collectionRef = collection(db, 'categories');
     const q = query(collectionRef);
     const querySnapshop = await (getDocs(q));
-    const categoryMap = querySnapshop.docs.reduce((acc, docSnapshot) => {
-        const { title, items } = docSnapshot.data();
-        acc[title.toLowerCase()] = items;
-        return acc;
-    }, {})
+    const categoryMap = querySnapshop.docs.map(docsSnapshot => docsSnapshot.data());
 
     return categoryMap;
 }
@@ -106,4 +101,14 @@ export const signOutUser = async () => await signOut(auth);
 export const onAuthStateChangedListener = (callback) => {
 
     onAuthStateChanged(auth, callback);
+}
+
+export const getCurrentUser = () => {
+    return new Promise((resolve, reject) => {
+        const unsubscribe = onAuthStateChanged(auth,
+            (userAuth) => {
+                unsubscribe();
+                resolve(userAuth);
+            }, reject)
+    })
 }
